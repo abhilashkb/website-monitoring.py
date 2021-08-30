@@ -7,9 +7,13 @@ with open('domains-list.txt') as domains:
 list_length= len(domain_list)
 
 def status_code(domain):
-    status_cod=str(requests.head('http://'+domain+'', headers={'User-Agent': 'Foo bar'},allow_redirects=True).status_code)
-    if re.match( r'[2,3]\d{2}$' ,status_cod.strip()):
-        print("status ok")
+    if re.match(r'\w+(\.\w+){1,3}$',domain):
+        status_cod=str(requests.head('http://'+domain+'', headers={'User-Agent': 'Foo bar'},allow_redirects=True).status_code)
+        if re.match( r'[2,3]\d{2}$' ,status_cod.strip()):
+            print("status ok")
+        else:
+            print("invalid domain")
+
 
 j=0
 while True:
