@@ -1,8 +1,19 @@
 import threading
 import requests
 import re
+import json
+
+webhook_url = 'https://hooks.slack.com/services/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'
+
+with open('slackdata.txt') as slackd:
+    slack_data = json.load(slackd)
+
+
 with open('domains-list.txt') as domains:
     domain_list = domains.readlines()
+with open('sites-down.txt') as down_sites:
+    down_sitesl = [ x.strip() for x in down_sites.readlines()]
+    
 
 list_length= len(domain_list)
 
@@ -11,8 +22,31 @@ def status_code(domain):
         status_cod=str(requests.head('http://'+domain+'', headers={'User-Agent': 'Foo bar'},allow_redirects=True).status_code)
         if re.match( r'[2,3]\d{2}$' ,status_cod.strip()):
             print("status ok")
+            if domain in down_sitesl:
+                print("resolved")
+                slack_data['blocks'][0]['text']['text']=domain+'is up'
+                response = requests.post(webhook_url, data=json.dumps(slack_data)
+                ,headers={'Content-Type': 'application/json'})
+
+                with open('site-down.txt','w') as down_list:
+                    for d in down_sitesl:
+                        if domain == d:
+                            pass
+                        else:
+                            down_list.write(d)
+
+
+
         else:
-            print("invalid domain")
+            if domain not in down_sitesl:
+                with open('sites-down.txt','a') as down_sites:
+                    down_sites.write(domain)
+                slack_data['blocks'][0]['text']['text']=domain+'is down'
+                response = requests.post(webhook_url, data=json.dumps(slack_data)
+                ,headers={'Content-Type': 'application/json'})
+
+    else:
+        print("invalid domain")
 
 
 j=0
